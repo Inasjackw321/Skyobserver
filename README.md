@@ -58,9 +58,15 @@ This version is **significantly faster** than the original:
 ### Controls
 
 - **🌍 Track Planes** - Start/stop global flight tracking
-- **🌧️ Weather** - Toggle weather radar overlay
-- **📍 NOTAMs** - Show/hide NOTAM markers
-- **📡 Load Real NOTAMs** - Fetch fresh NOTAM data from sources
+- **🌧️ Weather** - Toggle animated weather radar with controls
+  - Opacity slider appears when weather is active
+  - Animates through 10+ frames automatically
+  - Shows timestamp and frame counter
+- **📍 NOTAMs** - Show/hide NOTAM markers on map
+- **📡 Load NOTAMs** - Fetch NOTAM data from multiple sources
+  - Click to reveal optional Laminar API key input
+  - Works without API key using fallback sources
+  - API key saved automatically in browser
 
 ### Statistics
 
@@ -119,10 +125,20 @@ jobs:
 - **Website**: https://www.rainviewer.com
 
 ### NOTAM Sources
-- **Major Airports** - International airport database (10 major hubs)
-- **Restricted Airspaces** - Known FRZs and restricted areas
-- **Aviation Authorities** - Simulated data from official sources
-- **Extensible** - Can be integrated with OpenAIP or FAA APIs
+
+**Laminar Data API v2** (Optional - Requires Free API Key)
+- **Provider**: Cirium/Laminar Data
+- **Coverage**: Global NOTAM data with GeoJSON geometry
+- **Cost**: Free trial available
+- **Features**: Full NOTAM parsing, altitude limits, traffic types
+- **Sign up**: [developer.laminardata.aero](https://developer.laminardata.aero)
+- **Documentation**: [NOTAM API v2 Docs](https://developer.laminardata.aero/documentation/notamdata/v2)
+
+**Fallback Sources** (Always Available - No API Key)
+- **Major Airports** - 12 international airport hubs worldwide
+- **Restricted Airspaces** - 5 known FRZs and prohibited areas
+- **Aviation Authorities** - Sample data from official sources
+- **FAA Integration** - Ready for FAA NOTAM Search API
 
 ## 🛠️ Technologies
 
@@ -187,14 +203,31 @@ zoom: 3, // Initial zoom level
 - Check your internet connection
 - Try toggling off and on again
 
-## 🌟 What's New (v2.0)
+## 🌟 What's New (v3.0)
 
+### Enhanced UI (Liquid Glass v2)
+- ✅ **Improved glassmorphism** - Enhanced blur effects and depth
+- ✅ **Animated buttons** - Shimmer effects on hover
+- ✅ **Weather controls** - Opacity slider with live animation
+- ✅ **API key management** - Secure local storage for Laminar Data API
+
+### Animated Weather Radar
+- ✅ **Frame-by-frame animation** - Watch weather patterns move in real-time
+- ✅ **Adjustable opacity** - 20-100% with live preview
+- ✅ **Timestamp display** - Shows current frame time and position
+- ✅ **Smooth transitions** - 500ms per frame for fluid motion
+
+### Multi-Source NOTAM Integration
+- ✅ **Laminar Data API v2** - Real NOTAMs with API key (optional)
+- ✅ **12 Major airports** - JFK, LHR, NRT, DXB, SYD, PVG, and more
+- ✅ **5 Restricted zones** - DC FRZ, London, Moscow, Beijing, Seoul
+- ✅ **FAA integration ready** - Extensible architecture
+- ✅ **Smart categorization** - Auto-detect NOTAM types from text
+
+### v2.0 Features
 - ✅ **Global tracking** - No more bounding box restrictions
-- ✅ **Liquid glass UI** - Complete redesign with glassmorphism
-- ✅ **Real NOTAM data** - Aviation notices from multiple sources
 - ✅ **Performance boost** - 10x faster with clustering
 - ✅ **Simplified controls** - Clean, minimal interface
-- ✅ **Better stats** - Real-time counters
 - ✅ **Dark theme map** - Improved visibility
 - ✅ **Mobile optimized** - Responsive design
 

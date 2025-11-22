@@ -42,14 +42,28 @@
                     <span class="btn-icon">🌧️</span>
                     <span class="btn-text">Weather</span>
                 </button>
+                <div id="weatherControls" class="weather-controls" style="display: none;">
+                    <div class="slider-group">
+                        <label class="slider-label">
+                            <span>Opacity</span>
+                            <span id="weatherOpacityValue">60%</span>
+                        </label>
+                        <input type="range" id="weatherOpacity" min="20" max="100" value="60" class="glass-slider">
+                    </div>
+                    <div class="weather-time" id="weatherTime"></div>
+                </div>
                 <button id="toggleNotams" class="glass-btn">
                     <span class="btn-icon">📍</span>
                     <span class="btn-text">NOTAMs</span>
                 </button>
                 <button id="loadRealNotams" class="glass-btn">
                     <span class="btn-icon">📡</span>
-                    <span class="btn-text">Load Real NOTAMs</span>
+                    <span class="btn-text">Load NOTAMs</span>
                 </button>
+                <div id="notamApiKey" class="api-key-input" style="display: none;">
+                    <input type="text" id="laminarApiKey" placeholder="Laminar API Key (optional)" class="glass-input">
+                    <small class="input-hint">Get free key at <a href="https://developer.laminardata.aero" target="_blank">developer.laminardata.aero</a></small>
+                </div>
             </div>
             <div id="status" class="status-text"></div>
         </div>
