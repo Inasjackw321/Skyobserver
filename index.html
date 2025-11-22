@@ -3,79 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sky Observer - Plane Tracker</title>
+    <title>Sky Observer - Global Plane Tracker</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="app">
-        <div id="sidebar">
-            <h1>🛩️ Sky Observer</h1>
-
-            <div class="control-section">
-                <h3>✈️ Plane Tracking</h3>
-                <button id="togglePlanes" class="btn btn-primary">Start Tracking</button>
-                <div id="planeCount" class="info-badge">Planes: 0</div>
+        <!-- Glass Panel Controls -->
+        <div class="glass-panel top-left">
+            <div class="brand">
+                <div class="brand-icon">✈</div>
+                <div class="brand-text">Sky Observer</div>
             </div>
+        </div>
 
-            <div class="control-section">
-                <h3>🌧️ Weather Radar</h3>
-                <button id="toggleRain" class="btn btn-secondary">Show Rain</button>
-                <div class="slider-container">
-                    <label>Opacity: <span id="rainOpacityValue">70%</span></label>
-                    <input type="range" id="rainOpacity" min="0" max="100" value="70">
+        <div class="glass-panel top-right">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="planeCount">0</div>
+                    <div class="stat-label">Aircraft</div>
                 </div>
-                <div id="radarTimestamp" class="info-text"></div>
-            </div>
-
-            <div class="control-section">
-                <h3>📍 NOTAMs</h3>
-                <button id="toggleNotamMode" class="btn btn-accent">Place NOTAM</button>
-                <div id="notamList" class="notam-list"></div>
-            </div>
-
-            <div class="control-section">
-                <h3>📋 Selected Plane</h3>
-                <div id="planeInfo" class="info-panel">
-                    Click on a plane to see details
+                <div class="stat-item">
+                    <div class="stat-value" id="notamCount">0</div>
+                    <div class="stat-label">NOTAMs</div>
                 </div>
             </div>
+        </div>
+
+        <div class="glass-panel bottom-left">
+            <div class="control-group">
+                <button id="togglePlanes" class="glass-btn">
+                    <span class="btn-icon">🌍</span>
+                    <span class="btn-text">Track Planes</span>
+                </button>
+                <button id="toggleRain" class="glass-btn">
+                    <span class="btn-icon">🌧️</span>
+                    <span class="btn-text">Weather</span>
+                </button>
+                <button id="toggleNotams" class="glass-btn">
+                    <span class="btn-icon">📍</span>
+                    <span class="btn-text">NOTAMs</span>
+                </button>
+                <button id="loadRealNotams" class="glass-btn">
+                    <span class="btn-icon">📡</span>
+                    <span class="btn-text">Load Real NOTAMs</span>
+                </button>
+            </div>
+            <div id="status" class="status-text"></div>
+        </div>
+
+        <div class="glass-panel bottom-right" id="infoPanel" style="display: none;">
+            <div class="info-header">
+                <span id="infoTitle">Aircraft Info</span>
+                <button id="closeInfo" class="close-btn">×</button>
+            </div>
+            <div id="infoContent" class="info-content"></div>
         </div>
 
         <div id="map"></div>
     </div>
 
-    <!-- NOTAM Modal -->
-    <div id="notamModal" class="modal">
-        <div class="modal-content">
-            <h2>Add NOTAM</h2>
-            <form id="notamForm">
-                <label>Title:</label>
-                <input type="text" id="notamTitle" required>
-
-                <label>Description:</label>
-                <textarea id="notamDescription" required></textarea>
-
-                <label>Type:</label>
-                <select id="notamType">
-                    <option value="warning">Warning</option>
-                    <option value="restricted">Restricted Airspace</option>
-                    <option value="danger">Danger Area</option>
-                    <option value="info">Information</option>
-                </select>
-
-                <label>Radius (km):</label>
-                <input type="number" id="notamRadius" value="5" min="1" max="100">
-
-                <div class="modal-buttons">
-                    <button type="submit" class="btn btn-primary">Add NOTAM</button>
-                    <button type="button" id="cancelNotam" class="btn btn-secondary">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
