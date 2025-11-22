@@ -203,6 +203,46 @@ zoom: 3, // Initial zoom level
 - Check your internet connection
 - Try toggling off and on again
 
+## 🌟 What's New (v3.5)
+
+### Color-Coded Aircraft by Altitude
+- ✅ **5-tier color system** - Planes colored by flight level
+  - 🔴 Red: >40,000ft (High altitude cruise)
+  - 🟠 Orange: 30-40,000ft (Standard cruise)
+  - 🟡 Yellow: 20-30,000ft (Medium altitude)
+  - 🟢 Green: 10-20,000ft (Climbing/descending)
+  - 🔵 Cyan: <10,000ft (Low altitude)
+- ✅ **Glowing effects** - Each plane glows with its altitude color
+- ✅ **SVG plane icons** - Custom vector graphics replace emojis
+- ✅ **Interactive legend** - Pulsing color legend in bottom-right
+- ✅ **Hover zoom** - Planes scale up 1.3x on hover
+
+### Zero-Flash Weather Animation
+- ✅ **Crossfade transitions** - Smooth layer switching
+- ✅ **Preloaded frames** - All frames loaded before animation
+- ✅ **Opacity blending** - Fades between frames without flicker
+- ✅ **800ms intervals** - Slower, more watchable playback
+- ✅ **Perfect loop** - Seamless animation cycle
+
+### Massively Expanded NOTAMs
+- ✅ **40+ NOTAMs** from 7 independent sources:
+  - 18 major international airports
+  - 7 restricted/prohibited airspaces
+  - 3 military zones (Area 51, RAF Manston, Mongolia)
+  - 3 flight training areas
+  - 2 helicopter zones
+  - 2 FAA temporary restrictions
+  - Up to 100 from Laminar API (with key)
+- ✅ **Parallel loading** - All sources fetched simultaneously
+- ✅ **Source counter** - Shows number of active data sources
+
+### Smooth Entrance Animations
+- ✅ **Staggered panel entry** - Glass panels fade in sequentially
+- ✅ **Plane entrance** - Aircraft animate in with scale effect
+- ✅ **NOTAM fade-in** - NOTAMs appear with 30ms stagger
+- ✅ **Info panel slide** - Aircraft details slide up smoothly
+- ✅ **Status fade** - Status messages fade between updates
+
 ## 🌟 What's New (v3.0)
 
 ### Enhanced UI (Liquid Glass v2)

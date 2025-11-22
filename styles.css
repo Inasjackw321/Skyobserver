@@ -69,6 +69,13 @@ body {
     overflow-y: auto;
 }
 
+.altitude-legend {
+    bottom: 20px;
+    right: 380px;
+    padding: 16px;
+    min-width: 160px;
+}
+
 /* Brand */
 .brand {
     display: flex;
@@ -405,10 +412,39 @@ body {
     color: #ff3b30;
 }
 
-/* Plane Icons */
-.plane-icon {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-    transition: transform 0.3s ease;
+/* Plane Icons - Color Coded */
+.plane-icon-wrapper {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: planeEntrance 0.5s ease-out;
+}
+
+.plane-marker-custom {
+    cursor: pointer !important;
+}
+
+.plane-marker-custom:hover .plane-icon-wrapper {
+    transform: scale(1.3) !important;
+}
+
+@keyframes planeEntrance {
+    from {
+        opacity: 0;
+        transform: scale(0.5) rotate(0deg);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Plane icon pulse animation */
+@keyframes planePulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 3px currentColor);
+    }
+    50% {
+        filter: drop-shadow(0 0 8px currentColor);
+    }
 }
 
 /* NOTAM Styles */
@@ -466,6 +502,63 @@ body {
     background: rgba(255, 255, 255, 0.5);
 }
 
+/* Altitude Legend */
+.legend-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    box-shadow: 0 0 8px currentColor;
+    animation: legendPulse 3s ease-in-out infinite;
+}
+
+@keyframes legendPulse {
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+/* Smooth transitions for all panels */
+.glass-panel {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.weather-controls,
+.api-key-input {
+    transition: opacity 0.3s ease, display 0.3s ease;
+}
+
+/* Status text fade */
+.status-text {
+    transition: opacity 0.3s ease;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .glass-panel {
@@ -496,6 +589,10 @@ body {
     .bottom-right {
         right: 10px;
         max-width: calc(100vw - 20px);
+    }
+
+    .altitude-legend {
+        display: none; /* Hide on mobile for space */
     }
 
     .brand-text {
