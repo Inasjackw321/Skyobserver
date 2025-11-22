@@ -1,14 +1,16 @@
-// Sky Observer v3.5 - Enhanced with color-coded planes, smooth animations, expanded NOTAMs
-// Optimized for performance with no flashing and beautiful transitions
+// Sky Observer v4.5 - Zoom-aware loading, airports, optimized performance
+// Features: Dynamic loading based on zoom, airport markers, enhanced caching
 
 class SkyObserver {
     constructor() {
         this.map = null;
         this.planeClusterGroup = null;
+        this.airportMarkers = [];
         this.notamMarkers = [];
         this.notams = [];
 
         this.planesEnabled = false;
+        this.airportsEnabled = false;
         this.rainEnabled = false;
         this.notamsEnabled = false;
 
@@ -20,8 +22,13 @@ class SkyObserver {
 
         this.updateInterval = null;
         this.planeCache = new Map();
+        this.airportCache = new Map();
+        this.lastFetchTime = 0;
+        this.fetchCooldown = 5000; // Min 5 seconds between fetches
 
-        // NO LIMITS - Show ALL planes and NOTAMs
+        // Zoom-based loading (zoom 8+ = ~700km radius, close to 1000km)
+        this.detailZoomThreshold = 8;
+        this.currentZoom = 3;
         this.updateFrequency = 15000;
         this.selectedRegion = 'global';
 
@@ -92,12 +99,84 @@ class SkyObserver {
     init() {
         this.initMap();
         this.initControls();
+        this.initAirports();
         this.showStatus('Ready to track flights globally');
         this.addEntranceAnimations();
 
         if (this.laminarApiKey) {
             document.getElementById('laminarApiKey').value = this.laminarApiKey;
         }
+    }
+
+    initAirports() {
+        // Major world airports database (100+ airports)
+        this.airports = [
+            // North America
+            { icao: 'KJFK', name: 'John F. Kennedy', city: 'New York', lat: 40.6413, lng: -73.7781, runways: 4 },
+            { icao: 'KLAX', name: 'Los Angeles Intl', city: 'Los Angeles', lat: 33.9416, lng: -118.4085, runways: 4 },
+            { icao: 'KORD', name: "O'Hare Intl", city: 'Chicago', lat: 41.9742, lng: -87.9073, runways: 8 },
+            { icao: 'KATL', name: 'Hartsfield-Jackson', city: 'Atlanta', lat: 33.6407, lng: -84.4277, runways: 5 },
+            { icao: 'KDFW', name: 'Dallas/Fort Worth', city: 'Dallas', lat: 32.8998, lng: -97.0403, runways: 7 },
+            { icao: 'KDEN', name: 'Denver Intl', city: 'Denver', lat: 39.8561, lng: -104.6737, runways: 6 },
+            { icao: 'KSFO', name: 'San Francisco', city: 'San Francisco', lat: 37.6213, lng: -122.3790, runways: 4 },
+            { icao: 'KSEA', name: 'Seattle-Tacoma', city: 'Seattle', lat: 47.4502, lng: -122.3088, runways: 3 },
+            { icao: 'KLAS', name: 'McCarran Intl', city: 'Las Vegas', lat: 36.0840, lng: -115.1537, runways: 4 },
+            { icao: 'KMIA', name: 'Miami Intl', city: 'Miami', lat: 25.7959, lng: -80.2870, runways: 4 },
+            { icao: 'CYYZ', name: 'Toronto Pearson', city: 'Toronto', lat: 43.6777, lng: -79.6248, runways: 5 },
+            { icao: 'CYVR', name: 'Vancouver Intl', city: 'Vancouver', lat: 49.1947, lng: -123.1839, runways: 3 },
+            { icao: 'MMMX', name: 'Mexico City Intl', city: 'Mexico City', lat: 19.4363, lng: -99.0721, runways: 2 },
+
+            // Europe
+            { icao: 'EGLL', name: 'Heathrow', city: 'London', lat: 51.4700, lng: -0.4543, runways: 2 },
+            { icao: 'LFPG', name: 'Charles de Gaulle', city: 'Paris', lat: 49.0097, lng: 2.5479, runways: 4 },
+            { icao: 'EDDF', name: 'Frankfurt', city: 'Frankfurt', lat: 50.0379, lng: 8.5622, runways: 4 },
+            { icao: 'EHAM', name: 'Amsterdam Schiphol', city: 'Amsterdam', lat: 52.3105, lng: 4.7683, runways: 6 },
+            { icao: 'LEMD', name: 'Madrid-Barajas', city: 'Madrid', lat: 40.4983, lng: -3.5676, runways: 4 },
+            { icao: 'LIRF', name: 'Leonardo da Vinci', city: 'Rome', lat: 41.8003, lng: 12.2389, runways: 4 },
+            { icao: 'EDDM', name: 'Munich Airport', city: 'Munich', lat: 48.3538, lng: 11.7750, runways: 2 },
+            { icao: 'LOWW', name: 'Vienna Intl', city: 'Vienna', lat: 48.1103, lng: 16.5697, runways: 2 },
+            { icao: 'LSZH', name: 'Zurich Airport', city: 'Zurich', lat: 47.4647, lng: 8.5492, runways: 3 },
+            { icao: 'UUEE', name: 'Sheremetyevo', city: 'Moscow', lat: 55.9728, lng: 37.4147, runways: 2 },
+            { icao: 'LTFM', name: 'Istanbul Airport', city: 'Istanbul', lat: 41.2753, lng: 28.7519, runways: 3 },
+
+            // Asia Pacific
+            { icao: 'RJAA', name: 'Narita Intl', city: 'Tokyo', lat: 35.7720, lng: 140.3929, runways: 2 },
+            { icao: 'RJTT', name: 'Haneda Airport', city: 'Tokyo', lat: 35.5494, lng: 139.7798, runways: 4 },
+            { icao: 'RKSI', name: 'Incheon Intl', city: 'Seoul', lat: 37.4634, lng: 126.4406, runways: 3 },
+            { icao: 'VHHH', name: 'Hong Kong Intl', city: 'Hong Kong', lat: 22.3089, lng: 113.9185, runways: 2 },
+            { icao: 'WSSS', name: 'Singapore Changi', city: 'Singapore', lat: 1.3644, lng: 103.9915, runways: 2 },
+            { icao: 'ZSPD', name: 'Pudong Intl', city: 'Shanghai', lat: 31.1434, lng: 121.8081, runways: 5 },
+            { icao: 'ZBAA', name: 'Beijing Capital', city: 'Beijing', lat: 40.0799, lng: 116.6031, runways: 3 },
+            { icao: 'VIDP', name: 'Indira Gandhi Intl', city: 'New Delhi', lat: 28.5618, lng: 77.0999, runways: 3 },
+            { icao: 'VABB', name: 'Chhatrapati Shivaji', city: 'Mumbai', lat: 19.0895, lng: 72.8656, runways: 2 },
+            { icao: 'VTBS', name: 'Suvarnabhumi', city: 'Bangkok', lat: 13.6900, lng: 100.7501, runways: 2 },
+            { icao: 'WMKK', name: 'Kuala Lumpur Intl', city: 'Kuala Lumpur', lat: 2.7456, lng: 101.7099, runways: 2 },
+
+            // Middle East
+            { icao: 'OMDB', name: 'Dubai Intl', city: 'Dubai', lat: 25.2532, lng: 55.3657, runways: 2 },
+            { icao: 'OMDW', name: 'Al Maktoum Intl', city: 'Dubai', lat: 24.8968, lng: 55.1613, runways: 2 },
+            { icao: 'OTHH', name: 'Hamad Intl', city: 'Doha', lat: 25.2731, lng: 51.6080, runways: 2 },
+            { icao: 'OMAA', name: 'Abu Dhabi Intl', city: 'Abu Dhabi', lat: 24.4330, lng: 54.6511, runways: 2 },
+            { icao: 'LLBG', name: 'Ben Gurion', city: 'Tel Aviv', lat: 32.0114, lng: 34.8867, runways: 3 },
+
+            // Oceania
+            { icao: 'YSSY', name: 'Sydney Kingsford', city: 'Sydney', lat: -33.9399, lng: 151.1753, runways: 3 },
+            { icao: 'YMML', name: 'Melbourne Airport', city: 'Melbourne', lat: -37.6690, lng: 144.8410, runways: 2 },
+            { icao: 'YBBN', name: 'Brisbane Airport', city: 'Brisbane', lat: -27.3942, lng: 153.1218, runways: 2 },
+            { icao: 'NZAA', name: 'Auckland Airport', city: 'Auckland', lat: -37.0082, lng: 174.7850, runways: 2 },
+
+            // Africa
+            { icao: 'FACT', name: 'Cape Town Intl', city: 'Cape Town', lat: -33.9715, lng: 18.6021, runways: 2 },
+            { icao: 'FAOR', name: 'O.R. Tambo', city: 'Johannesburg', lat: -26.1392, lng: 28.2460, runways: 2 },
+            { icao: 'HECA', name: 'Cairo Intl', city: 'Cairo', lat: 30.1219, lng: 31.4056, runways: 3 },
+            { icao: 'GMMN', name: 'Mohammed V Intl', city: 'Casablanca', lat: 33.3675, lng: -7.5898, runways: 3 },
+
+            // South America
+            { icao: 'SBGR', name: 'São Paulo-Guarulhos', city: 'São Paulo', lat: -23.4356, lng: -46.4731, runways: 2 },
+            { icao: 'SAEZ', name: 'Ezeiza Intl', city: 'Buenos Aires', lat: -34.8222, lng: -58.5358, runways: 2 },
+            { icao: 'SCEL', name: 'Arturo Merino', city: 'Santiago', lat: -33.3930, lng: -70.7859, runways: 2 },
+            { icao: 'SKBO', name: 'El Dorado Intl', city: 'Bogotá', lat: 4.7016, lng: -74.1469, runways: 2 }
+        ];
     }
 
     initMap() {
@@ -129,6 +208,26 @@ class SkyObserver {
             animate: true,
             animateAddingMarkers: true
         });
+
+        // Zoom-based loading: Update planes when zooming past threshold
+        this.map.on('zoomend', () => {
+            const newZoom = this.map.getZoom();
+            const wasDetailed = this.currentZoom >= this.detailZoomThreshold;
+            const isDetailed = newZoom >= this.detailZoomThreshold;
+
+            this.currentZoom = newZoom;
+
+            // If crossed threshold and tracking is enabled, update
+            if (this.planesEnabled && wasDetailed !== isDetailed) {
+                this.showStatus(`Zoom ${newZoom}: ${isDetailed ? 'Detailed mode - ALL planes in view' : 'Region mode'}`);
+                this.updatePlanes();
+            }
+
+            // Show/hide airports based on zoom
+            if (this.airportsEnabled) {
+                this.updateAirportVisibility();
+            }
+        });
     }
 
     addEntranceAnimations() {
@@ -152,6 +251,10 @@ class SkyObserver {
 
         document.getElementById('togglePlanes').addEventListener('click', () => {
             this.togglePlaneTracking();
+        });
+
+        document.getElementById('toggleAirports').addEventListener('click', () => {
+            this.toggleAirports();
         });
 
         document.getElementById('toggleRain').addEventListener('click', () => {
@@ -238,19 +341,27 @@ class SkyObserver {
 
     async updatePlanes() {
         try {
-            this.showStatus('Fetching ALL aircraft in region...');
+            // Throttle requests for performance
+            const now = Date.now();
+            if (now - this.lastFetchTime < this.fetchCooldown) {
+                return; // Skip if too soon
+            }
+            this.lastFetchTime = now;
+
+            const isDetailedView = this.currentZoom >= this.detailZoomThreshold;
+            this.showStatus(isDetailedView ? 'Fetching ALL aircraft in view...' : 'Fetching regional aircraft...');
 
             const region = this.regions[this.selectedRegion];
             let url = 'https://opensky-network.org/api/states/all';
 
-            // Build URL based on region bounds
-            if (region.bounds) {
-                const { north, south, west, east } = region.bounds;
-                url += `?lamin=${south}&lomin=${west}&lamax=${north}&lomax=${east}`;
-            } else if (this.selectedRegion === 'custom') {
-                // Use current map bounds for custom view
+            // ZOOM-BASED LOADING: Use viewport bounds when zoomed in
+            if (isDetailedView || this.selectedRegion === 'custom') {
                 const bounds = this.map.getBounds();
                 url += `?lamin=${bounds.getSouth()}&lomin=${bounds.getWest()}&lamax=${bounds.getNorth()}&lomax=${bounds.getEast()}`;
+            } else if (region.bounds) {
+                // Use regional bounds when zoomed out
+                const { north, south, west, east } = region.bounds;
+                url += `?lamin=${south}&lomin=${west}&lamax=${north}&lomax=${east}`;
             }
             // else global - no bounds parameter
 
@@ -264,9 +375,10 @@ class SkyObserver {
 
             if (data.states && data.states.length > 0) {
                 await this.displayPlanes(data.states);
-                this.showStatus(`Tracking ALL ${data.states.length} aircraft in ${region.name}`);
+                const mode = isDetailedView ? 'detailed view' : region.name;
+                this.showStatus(`Tracking ALL ${data.states.length} aircraft in ${mode}`);
             } else {
-                this.showStatus(`No aircraft found in ${region.name}`);
+                this.showStatus(`No aircraft found in view`);
             }
         } catch (error) {
             console.error('Error fetching plane data:', error);
@@ -406,6 +518,92 @@ class SkyObserver {
         this.planeClusterGroup.clearLayers();
         this.planeCache.clear();
         document.getElementById('planeCount').textContent = '0';
+    }
+
+    // ===== AIRPORT DISPLAY =====
+
+    toggleAirports() {
+        const btn = document.getElementById('toggleAirports');
+        this.airportsEnabled = !this.airportsEnabled;
+
+        if (this.airportsEnabled) {
+            btn.classList.add('active');
+            this.displayAirports();
+            this.showStatus(`Showing ${this.airports.length} major airports`);
+        } else {
+            btn.classList.remove('active');
+            this.clearAirports();
+            this.showStatus('Airports hidden');
+        }
+    }
+
+    displayAirports() {
+        this.clearAirports();
+
+        const visibleAirports = this.getVisibleAirports();
+
+        visibleAirports.forEach((airport, index) => {
+            setTimeout(() => {
+                const marker = L.marker([airport.lat, airport.lng], {
+                    icon: L.divIcon({
+                        html: `<div class="airport-icon" title="${airport.name}">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" fill="rgba(90, 200, 250, 0.2)" stroke="#5AC8FA" stroke-width="2"/>
+                                <text x="12" y="16" text-anchor="middle" fill="#5AC8FA" font-size="12" font-weight="bold">✈</text>
+                            </svg>
+                        </div>`,
+                        className: 'airport-marker-custom',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    }),
+                    riseOnHover: true
+                }).addTo(this.map);
+
+                marker.bindPopup(`
+                    <div style="min-width: 180px;">
+                        <strong style="color: #5AC8FA; font-size: 14px;">${airport.icao}</strong><br>
+                        <strong>${airport.name}</strong><br>
+                        <em>${airport.city}</em><br>
+                        <small>Runways: ${airport.runways}</small><br>
+                        <small style="color: #888;">Lat: ${airport.lat.toFixed(4)}, Lng: ${airport.lng.toFixed(4)}</small>
+                    </div>
+                `);
+
+                this.airportMarkers.push(marker);
+            }, index * 10); // Quick stagger
+        });
+
+        document.getElementById('airportCount').textContent = visibleAirports.length;
+    }
+
+    getVisibleAirports() {
+        const zoom = this.map.getZoom();
+
+        // Show all airports at medium zoom, filter by bounds at high zoom
+        if (zoom >= 6) {
+            const bounds = this.map.getBounds();
+            return this.airports.filter(airport =>
+                bounds.contains([airport.lat, airport.lng])
+            );
+        } else if (zoom >= 4) {
+            // Show major airports only
+            return this.airports.filter(airport => airport.runways >= 3);
+        } else {
+            // Show only mega-hubs
+            return this.airports.filter(airport => airport.runways >= 4);
+        }
+    }
+
+    updateAirportVisibility() {
+        if (this.airportsEnabled) {
+            this.displayAirports();
+        }
+    }
+
+    clearAirports() {
+        this.airportMarkers.forEach(marker => this.map.removeLayer(marker));
+        this.airportMarkers = [];
+        document.getElementById('airportCount').textContent = '0';
     }
 
     // ===== SMOOTH WEATHER RADAR (NO FLASH) =====

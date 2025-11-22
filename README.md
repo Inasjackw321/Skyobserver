@@ -1,16 +1,26 @@
 # ✈️ Sky Observer - Global Plane Tracker
 
-A beautiful, high-performance plane tracking application featuring **global flight tracking**, **real-time weather radar**, and **NOTAM data** from aviation sources. Built for GitHub Pages with a stunning liquid glass UI design.
+A beautiful, high-performance plane tracking application featuring **zoom-aware flight tracking**, **50+ major airports**, **real-time weather radar**, and **NOTAM data** from aviation sources. Built for GitHub Pages with a stunning liquid glass UI design.
 
 ## 🌟 Key Features
 
-### 🌍 Global Plane Tracking
-- **Worldwide coverage** - Track aircraft globally, not just in your viewport
-- **500+ aircraft** displayed simultaneously with intelligent clustering
-- **Optimized performance** - Smooth rendering with Leaflet MarkerCluster
+### 🌍 Smart Plane Tracking
+- **Zoom-aware loading** - Automatically loads ALL planes when zoomed under 1000km
+- **Regional mode** - Efficient tracking when zoomed out
+- **Unlimited aircraft** - No caps, see every plane in view
+- **Optimized performance** - Request throttling and smart caching
 - **Real-time updates** every 15 seconds
 - **Detailed flight info** - Callsign, altitude, speed, heading, vertical rate, and more
+- **Color-coded by altitude** - 5-tier color system for instant recognition
 - **Zero API keys required** - Uses free OpenSky Network API
+
+### 🛫 Airport Database
+- **50+ major airports** worldwide with full details
+- **ICAO codes** - Official 4-letter identifiers
+- **Runway count** - Number of active runways
+- **Zoom-adaptive** - Shows more airports as you zoom in
+- **Interactive popups** - Click for detailed airport information
+- **Beautiful icons** - Animated circular markers with plane symbols
 
 ### 🌧️ Live Weather Radar
 - **Global coverage** from RainViewer
@@ -35,14 +45,17 @@ A beautiful, high-performance plane tracking application featuring **global flig
 
 ## 🚀 Performance Optimizations
 
-This version is **significantly faster** than the original:
+This version is **significantly faster** with intelligent loading:
 
-1. **Marker Clustering** - Groups nearby planes for better performance
-2. **Chunked Loading** - Processes markers in batches to avoid UI freezing
-3. **Smart Caching** - Reduces redundant API calls
-4. **Throttled Updates** - 15-second intervals to respect rate limits
-5. **Grounded planes filtered** - Only shows airborne aircraft
-6. **Batch processing** - All markers added at once for efficiency
+1. **Zoom-aware loading** - Automatically adjusts data fetching based on zoom level
+2. **Request throttling** - 5-second cooldown prevents excessive API calls
+3. **Marker Clustering** - Groups nearby planes for better performance
+4. **Chunked Loading** - Processes markers in batches to avoid UI freezing
+5. **Smart Caching** - Airport and plane data cached to reduce redundant fetches
+6. **Throttled Updates** - 15-second intervals to respect rate limits
+7. **Grounded planes filtered** - Only shows airborne aircraft
+8. **Batch processing** - All markers added at once for efficiency
+9. **Adaptive airports** - Only shows relevant airports based on zoom level
 
 ## 📱 How to Use
 
@@ -50,15 +63,23 @@ This version is **significantly faster** than the original:
 
 1. **Select Region** - Choose a region from dropdown (Global, North America, Europe, etc.)
 2. **Track Planes** - Click "Track Planes" to see ALL aircraft in selected region
-3. **Weather Radar** - Click "Weather" to overlay real-time precipitation
-4. **Load NOTAMs** - Click "Load NOTAMs" to fetch ALL aviation notices
-5. **Toggle NOTAMs** - Click "NOTAMs" to show/hide NOTAM circles
-6. **Click Aircraft** - Tap any plane to see detailed information
-7. **Switch Regions** - Change region anytime to focus on different areas
+3. **Show Airports** - Click "Airports" to display major worldwide airports
+4. **Weather Radar** - Click "Weather" to overlay real-time precipitation
+5. **Load NOTAMs** - Click "Load NOTAMs" to fetch ALL aviation notices
+6. **Toggle NOTAMs** - Click "NOTAMs" to show/hide NOTAM circles
+7. **Zoom In** - Zoom to level 8+ to enable detailed mode (all planes in view)
+8. **Click Markers** - Tap any plane or airport to see detailed information
+9. **Switch Regions** - Change region anytime to focus on different areas
 
 ### Controls
 
-- **🌍 Track Planes** - Start/stop global flight tracking
+- **✈️ Track Planes** - Start/stop smart flight tracking
+  - Auto-detects zoom level for optimal loading
+  - Zoom 8+: Detailed mode (ALL planes in viewport)
+  - Zoom <8: Regional mode (selected region bounds)
+- **🛫 Airports** - Toggle 50+ major airport markers
+  - More airports appear as you zoom in
+  - Click any airport for detailed information
 - **🌧️ Weather** - Toggle animated weather radar with controls
   - Opacity slider appears when weather is active
   - Animates through 10+ frames automatically
@@ -73,6 +94,7 @@ This version is **significantly faster** than the original:
 
 Real-time stats displayed in top-right panel:
 - **Aircraft** - Number of tracked planes
+- **Airports** - Number of visible airports
 - **NOTAMs** - Number of active aviation notices
 
 ## 🌐 Deploying to GitHub Pages
@@ -172,8 +194,9 @@ jobs:
 Edit `app.js` to customize:
 
 ```javascript
-this.maxPlanes = 500; // Maximum aircraft displayed
+this.detailZoomThreshold = 8; // Zoom level for detailed mode (8 = ~700km radius)
 this.updateFrequency = 15000; // Update interval (ms)
+this.fetchCooldown = 5000; // Min time between requests (ms)
 ```
 
 Edit map center in `initMap()`:
@@ -182,17 +205,26 @@ center: [20, 0], // [latitude, longitude]
 zoom: 3, // Initial zoom level
 ```
 
+Add more airports in `initAirports()`:
+```javascript
+{ icao: 'KJFK', name: 'John F. Kennedy', city: 'New York',
+  lat: 40.6413, lng: -73.7781, runways: 4 }
+```
+
 ## 🐛 Troubleshooting
 
 **Planes not loading?**
 - OpenSky API has rate limits (400 requests/day)
 - Wait 1-2 minutes between refreshes
 - Check browser console for errors
+- Request throttling prevents rapid updates (5-second minimum)
 
 **Performance issues?**
-- Reduce `maxPlanes` in `app.js`
+- Increase `detailZoomThreshold` to delay detailed mode
 - Increase `updateFrequency` to lower refresh rate
-- Zoom in to specific regions
+- Increase `fetchCooldown` to reduce API calls
+- Use regional mode instead of detailed mode
+- Zoom out to reduce visible markers
 
 **NOTAMs not appearing?**
 - Click "Load Real NOTAMs" first
@@ -203,6 +235,47 @@ zoom: 3, // Initial zoom level
 - RainViewer API might be temporarily unavailable
 - Check your internet connection
 - Try toggling off and on again
+
+## 🌟 What's New (v4.5)
+
+### 🔍 Zoom-Aware Loading (Intelligent Data Fetching)
+- ✅ **Automatic zoom detection** - Monitors zoom level changes in real-time
+- ✅ **1000km threshold** - Switches to detailed mode at zoom level 8+
+- ✅ **Viewport tracking** - Loads ALL planes in current view when zoomed in
+- ✅ **Regional mode** - Efficient regional bounds when zoomed out
+- ✅ **Request throttling** - 5-second cooldown prevents API spam
+- ✅ **Smart caching** - Reduces redundant fetches for better performance
+- ✅ **Status indicators** - Clear messages show which mode is active
+
+### 🛫 Major Airports Database (50+ Worldwide)
+- ✅ **Comprehensive coverage** - 50+ busiest airports globally
+  - 🇺🇸 13 North American hubs (JFK, LAX, ORD, ATL, DFW, etc.)
+  - 🇪🇺 11 European airports (LHR, CDG, FRA, AMS, etc.)
+  - 🌏 11 Asia Pacific hubs (NRT, HND, ICN, HKG, SIN, etc.)
+  - 🕌 5 Middle Eastern airports (DXB, DOH, etc.)
+  - 🌍 4 African airports (CPT, JNB, CAI, etc.)
+  - 🌎 3 South American hubs (GRU, EZE, SCL)
+  - 🇦🇺 3 Oceania airports (SYD, MEL, BRN, AKL)
+- ✅ **Rich data** - ICAO codes, city names, runway counts
+- ✅ **Zoom-adaptive display** - More airports appear as you zoom in
+  - Zoom <4: Only mega-hubs (4+ runways)
+  - Zoom 4-6: Major airports (3+ runways)
+  - Zoom 6+: All airports in viewport
+- ✅ **Interactive markers** - Click for full airport details
+- ✅ **Beautiful animations** - Rotating entrance effects
+- ✅ **Hover effects** - Scale and glow on mouse over
+
+### ⚡ Performance Optimizations
+- ✅ **Faster loading** - Parallel requests and caching
+- ✅ **Request throttling** - Prevents API rate limit issues
+- ✅ **Memory efficient** - Airport cache system
+- ✅ **Smooth transitions** - Optimized zoom handlers
+- ✅ **Reduced updates** - Smart detection of zoom threshold crossings
+
+### 📊 Enhanced Statistics
+- ✅ **3-column layout** - Aircraft, Airports, NOTAMs
+- ✅ **Live airport count** - Updates with zoom level
+- ✅ **Optimized display** - Smaller fonts for better fit
 
 ## 🌟 What's New (v4.0)
 
