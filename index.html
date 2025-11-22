@@ -34,8 +34,22 @@
 
         <div class="glass-panel bottom-left">
             <div class="control-group">
+                <div class="region-selector">
+                    <label class="region-label">Region:</label>
+                    <select id="regionSelect" class="glass-select">
+                        <option value="global">🌍 Global</option>
+                        <option value="north-america">🇺🇸 North America</option>
+                        <option value="europe">🇪🇺 Europe</option>
+                        <option value="asia">🌏 Asia Pacific</option>
+                        <option value="middle-east">🕌 Middle East</option>
+                        <option value="africa">🌍 Africa</option>
+                        <option value="south-america">🌎 South America</option>
+                        <option value="oceania">🇦🇺 Oceania</option>
+                        <option value="custom">📍 Custom View</option>
+                    </select>
+                </div>
                 <button id="togglePlanes" class="glass-btn">
-                    <span class="btn-icon">🌍</span>
+                    <span class="btn-icon">✈️</span>
                     <span class="btn-text">Track Planes</span>
                 </button>
                 <button id="toggleRain" class="glass-btn">

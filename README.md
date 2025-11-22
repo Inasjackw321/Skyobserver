@@ -48,12 +48,13 @@ This version is **significantly faster** than the original:
 
 ### Quick Start
 
-1. **Track Planes** - Click "Track Planes" to see global aircraft (takes a few seconds to load)
-2. **Weather Radar** - Click "Weather" to overlay real-time precipitation
-3. **Load NOTAMs** - Click "Load Real NOTAMs" to fetch aviation notices
-4. **Toggle NOTAMs** - Click "NOTAMs" to show/hide NOTAM circles
-5. **Click Aircraft** - Tap any plane to see detailed information
-6. **Explore Map** - Zoom and pan to explore different regions
+1. **Select Region** - Choose a region from dropdown (Global, North America, Europe, etc.)
+2. **Track Planes** - Click "Track Planes" to see ALL aircraft in selected region
+3. **Weather Radar** - Click "Weather" to overlay real-time precipitation
+4. **Load NOTAMs** - Click "Load NOTAMs" to fetch ALL aviation notices
+5. **Toggle NOTAMs** - Click "NOTAMs" to show/hide NOTAM circles
+6. **Click Aircraft** - Tap any plane to see detailed information
+7. **Switch Regions** - Change region anytime to focus on different areas
 
 ### Controls
 
@@ -202,6 +203,30 @@ zoom: 3, // Initial zoom level
 - RainViewer API might be temporarily unavailable
 - Check your internet connection
 - Try toggling off and on again
+
+## 🌟 What's New (v4.0)
+
+### Regional Tracking with NO LIMITS
+- ✅ **8 Pre-defined Regions** - Select specific areas to track
+  - 🌍 Global - Worldwide coverage
+  - 🇺🇸 North America - USA, Canada, Mexico
+  - 🇪🇺 Europe - All European countries
+  - 🌏 Asia Pacific - China, Japan, SE Asia
+  - 🕌 Middle East - UAE, Saudi, Turkey
+  - 🌍 Africa - All African countries
+  - 🌎 South America - Brazil, Argentina, etc.
+  - 🇦🇺 Oceania - Australia, New Zealand
+  - 📍 Custom View - Use current map viewport
+- ✅ **Auto map positioning** - Map centers on selected region
+- ✅ **Smart bounding boxes** - Optimized region boundaries
+- ✅ **Live region switching** - Change regions while tracking
+
+### UNLIMITED Planes & NOTAMs
+- ✅ **NO 500-plane limit** - See EVERY aircraft in region
+- ✅ **ALL NOTAMs loaded** - No more 100-NOTAM cap from Laminar
+- ✅ **Complete coverage** - Nothing filtered, everything displayed
+- ✅ **Accurate counts** - Real-time total in stats panel
+- ✅ **Performance maintained** - Clustering handles thousands efficiently
 
 ## 🌟 What's New (v3.5)
 

@@ -21,12 +21,70 @@ class SkyObserver {
         this.updateInterval = null;
         this.planeCache = new Map();
 
-        // Performance optimization
-        this.maxPlanes = 500;
+        // NO LIMITS - Show ALL planes and NOTAMs
         this.updateFrequency = 15000;
+        this.selectedRegion = 'global';
 
         // API Keys
         this.laminarApiKey = localStorage.getItem('laminar_api_key') || '';
+
+        // Region definitions with bounding boxes
+        this.regions = {
+            'global': {
+                name: 'Global',
+                bounds: null,
+                center: [20, 0],
+                zoom: 3
+            },
+            'north-america': {
+                name: 'North America',
+                bounds: { north: 71, south: 15, west: -170, east: -50 },
+                center: [45, -100],
+                zoom: 4
+            },
+            'europe': {
+                name: 'Europe',
+                bounds: { north: 71, south: 36, west: -10, east: 40 },
+                center: [50, 10],
+                zoom: 5
+            },
+            'asia': {
+                name: 'Asia Pacific',
+                bounds: { north: 55, south: -10, west: 60, east: 150 },
+                center: [30, 105],
+                zoom: 4
+            },
+            'middle-east': {
+                name: 'Middle East',
+                bounds: { north: 42, south: 12, west: 25, east: 65 },
+                center: [27, 45],
+                zoom: 5
+            },
+            'africa': {
+                name: 'Africa',
+                bounds: { north: 37, south: -35, west: -18, east: 52 },
+                center: [5, 20],
+                zoom: 4
+            },
+            'south-america': {
+                name: 'South America',
+                bounds: { north: 13, south: -56, west: -82, east: -34 },
+                center: [-15, -60],
+                zoom: 4
+            },
+            'oceania': {
+                name: 'Oceania',
+                bounds: { north: -10, south: -47, west: 110, east: 180 },
+                center: [-25, 135],
+                zoom: 4
+            },
+            'custom': {
+                name: 'Custom View',
+                bounds: null,
+                center: null,
+                zoom: null
+            }
+        };
 
         this.init();
     }
@@ -87,6 +145,11 @@ class SkyObserver {
     }
 
     initControls() {
+        // Region selector
+        document.getElementById('regionSelect').addEventListener('change', (e) => {
+            this.changeRegion(e.target.value);
+        });
+
         document.getElementById('togglePlanes').addEventListener('click', () => {
             this.togglePlaneTracking();
         });
@@ -129,6 +192,30 @@ class SkyObserver {
         });
     }
 
+    // ===== REGION MANAGEMENT =====
+
+    changeRegion(regionKey) {
+        this.selectedRegion = regionKey;
+        const region = this.regions[regionKey];
+
+        if (regionKey !== 'custom') {
+            // Update map view
+            if (region.center && region.zoom) {
+                this.map.setView(region.center, region.zoom);
+            }
+
+            // If tracking is active, update planes for new region
+            if (this.planesEnabled) {
+                this.updatePlanes();
+            }
+
+            this.showStatus(`Switched to ${region.name}`);
+        } else {
+            // Custom view - use current map bounds
+            this.showStatus('Using custom map view - move map to your area');
+        }
+    }
+
     // ===== PLANE TRACKING WITH COLOR CODING =====
 
     async togglePlaneTracking() {
@@ -151,9 +238,23 @@ class SkyObserver {
 
     async updatePlanes() {
         try {
-            this.showStatus('Updating aircraft positions...');
+            this.showStatus('Fetching ALL aircraft in region...');
 
-            const response = await fetch('https://opensky-network.org/api/states/all');
+            const region = this.regions[this.selectedRegion];
+            let url = 'https://opensky-network.org/api/states/all';
+
+            // Build URL based on region bounds
+            if (region.bounds) {
+                const { north, south, west, east } = region.bounds;
+                url += `?lamin=${south}&lomin=${west}&lamax=${north}&lomax=${east}`;
+            } else if (this.selectedRegion === 'custom') {
+                // Use current map bounds for custom view
+                const bounds = this.map.getBounds();
+                url += `?lamin=${bounds.getSouth()}&lomin=${bounds.getWest()}&lamax=${bounds.getNorth()}&lomax=${bounds.getEast()}`;
+            }
+            // else global - no bounds parameter
+
+            const response = await fetch(url);
 
             if (!response.ok) {
                 throw new Error(`API Error: ${response.status}`);
@@ -163,9 +264,9 @@ class SkyObserver {
 
             if (data.states && data.states.length > 0) {
                 await this.displayPlanes(data.states);
-                this.showStatus(`Tracking ${Math.min(data.states.length, this.maxPlanes)} aircraft globally`);
+                this.showStatus(`Tracking ALL ${data.states.length} aircraft in ${region.name}`);
             } else {
-                this.showStatus('No flight data available');
+                this.showStatus(`No aircraft found in ${region.name}`);
             }
         } catch (error) {
             console.error('Error fetching plane data:', error);
@@ -194,11 +295,9 @@ class SkyObserver {
         this.planeCache.clear();
 
         const markers = [];
-        let count = 0;
 
+        // NO LIMIT - Display ALL planes
         for (const state of states) {
-            if (count >= this.maxPlanes) break;
-
             const [icao24, callsign, origin_country, time_position, last_contact,
                    longitude, latitude, baro_altitude, on_ground, velocity,
                    true_track, vertical_rate] = state;
@@ -247,11 +346,11 @@ class SkyObserver {
             marker.on('click', () => this.showPlaneInfo(planeData));
 
             markers.push(marker);
-            count++;
         }
 
+        // Add ALL markers to cluster group
         this.planeClusterGroup.addLayers(markers);
-        document.getElementById('planeCount').textContent = count;
+        document.getElementById('planeCount').textContent = markers.length;
     }
 
     showPlaneInfo(plane) {
@@ -485,7 +584,8 @@ class SkyObserver {
             if (response.ok) {
                 const data = await response.json();
                 if (data.items) {
-                    data.items.slice(0, 100).forEach(item => {
+                    // NO LIMIT - Load ALL NOTAMs from Laminar
+                    data.items.forEach(item => {
                         notams.push({
                             id: `LAMINAR-${item.id}`,
                             title: item.location || item.notamId,
